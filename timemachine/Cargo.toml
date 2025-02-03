@@ -15,6 +15,6 @@ chrono.workspace = true
 denokv_proto.workspace = true
 futures.workspace = true
 hex.workspace = true
+libsql-rusqlite.workspace = true
 prost.workspace = true
-rusqlite.workspace = true
 tokio.workspace = true
