@@ -45,6 +45,9 @@ jobs:
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian
             build: |-
               set -e &&
+              rustup install 1.86.0 &&
+              rustup default 1.86.0 &&
+              apt-get update &&
               apt-get -y install protobuf-compiler &&
               yarn build --target x86_64-unknown-linux-gnu &&
               strip *.node
@@ -124,7 +127,7 @@ jobs:
         if: ${{ !matrix.settings.docker }}
         working-directory: ./npm/napi
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: bindings-${{ matrix.settings.target }}
           path: npm/napi/${{ env.APP_NAME }}.*.node
@@ -157,7 +160,7 @@ jobs:
         run: yarn install
         working-directory: ./npm/napi
       - name: Download artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: bindings-${{ matrix.settings.target }}
           path: ./npm/napi
@@ -191,7 +194,7 @@ jobs:
         run: yarn install
         working-directory: ./npm/napi
       - name: Download artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: bindings-x86_64-unknown-linux-gnu
           path: ./npm/napi
@@ -222,7 +225,7 @@ jobs:
         run: yarn install
         working-directory: ./npm/napi
       - name: Download all artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           path: npm/napi/artifacts
       - name: Move artifacts
