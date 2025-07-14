@@ -4,9 +4,9 @@ mod backend;
 mod sum_operand;
 mod time;
 
-use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::collections::VecDeque;
+use std::collections::hash_map::Entry;
 use std::num::NonZeroU32;
 use std::ops::Add;
 use std::pin::Pin;
@@ -18,11 +18,11 @@ use std::sync::Weak;
 use std::thread::JoinHandle;
 use std::time::Duration;
 
-pub use crate::backend::sqlite_retry_loop;
 use crate::backend::DequeuedMessage;
 use crate::backend::QueueMessageId;
 use crate::backend::SqliteBackend;
 pub use crate::backend::SqliteBackendError;
+pub use crate::backend::sqlite_retry_loop;
 use async_stream::try_stream;
 use chrono::DateTime;
 use chrono::Utc;
@@ -36,18 +36,18 @@ use denokv_proto::ReadRangeOutput;
 use denokv_proto::SnapshotReadOptions;
 use denokv_proto::Versionstamp;
 use denokv_proto::WatchKeyOutput;
-use futures::future::Either;
 use futures::FutureExt;
 use futures::Stream;
 use futures::StreamExt;
+use futures::future::Either;
 use rand::RngCore;
 pub use rusqlite::Connection;
 use time::utc_now;
 use tokio::select;
+use tokio::sync::Notify;
 use tokio::sync::futures::Notified;
 use tokio::sync::oneshot;
 use tokio::sync::watch;
-use tokio::sync::Notify;
 use tokio_stream::wrappers::ReceiverStream;
 
 /// The interval at which the queue_running table is cleaned up of stale

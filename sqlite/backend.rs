@@ -7,9 +7,6 @@ use std::time::Duration;
 use chrono::DateTime;
 use chrono::Utc;
 use deno_error::JsErrorBox;
-use denokv_proto::decode_value;
-use denokv_proto::encode_value;
-use denokv_proto::encode_value_owned;
 use denokv_proto::AtomicWrite;
 use denokv_proto::CommitResult;
 use denokv_proto::KvEntry;
@@ -18,42 +15,41 @@ use denokv_proto::MutationKind;
 use denokv_proto::ReadRange;
 use denokv_proto::ReadRangeOutput;
 use denokv_proto::SnapshotReadOptions;
-use denokv_proto::Versionstamp;
 use denokv_proto::VALUE_ENCODING_V8;
+use denokv_proto::Versionstamp;
+use denokv_proto::decode_value;
+use denokv_proto::encode_value;
+use denokv_proto::encode_value_owned;
 use num_bigint::BigInt;
 use rand::Rng;
 use rand::RngCore;
-use rusqlite::params;
 use rusqlite::DatabaseName;
 use rusqlite::OptionalExtension;
 use rusqlite::Transaction;
+use rusqlite::params;
 use thiserror::Error;
 use uuid::Uuid;
 
+use crate::SqliteNotifier;
 use crate::sum_operand::SumOperand;
 use crate::time::utc_now;
-use crate::SqliteNotifier;
 
 const STATEMENT_INC_AND_GET_DATA_VERSION: &str =
   "update data_version set version = version + ? where k = 0 returning version";
 const STATEMENT_GET_DATA_VERSION: &str =
   "select version from data_version where k = 0";
-const STATEMENT_KV_RANGE_SCAN: &str =
-  "select k, v, v_encoding, version from kv where k >= ? and k < ? order by k asc limit ?";
-const STATEMENT_KV_RANGE_SCAN_REVERSE: &str =
-  "select k, v, v_encoding, version from kv where k >= ? and k < ? order by k desc limit ?";
+const STATEMENT_KV_RANGE_SCAN: &str = "select k, v, v_encoding, version from kv where k >= ? and k < ? order by k asc limit ?";
+const STATEMENT_KV_RANGE_SCAN_REVERSE: &str = "select k, v, v_encoding, version from kv where k >= ? and k < ? order by k desc limit ?";
 const STATEMENT_KV_POINT_GET_VALUE_ONLY: &str =
   "select v, v_encoding from kv where k = ?";
 const STATEMENT_KV_POINT_GET_VERSION_ONLY: &str =
   "select version from kv where k = ?";
-const STATEMENT_KV_POINT_SET: &str =
-  "insert into kv (k, v, v_encoding, version, expiration_ms) values (:k, :v, :v_encoding, :version, :expiration_ms) on conflict(k) do update set v = :v, v_encoding = :v_encoding, version = :version, expiration_ms = :expiration_ms";
+const STATEMENT_KV_POINT_SET: &str = "insert into kv (k, v, v_encoding, version, expiration_ms) values (:k, :v, :v_encoding, :version, :expiration_ms) on conflict(k) do update set v = :v, v_encoding = :v_encoding, version = :version, expiration_ms = :expiration_ms";
 const STATEMENT_KV_POINT_DELETE: &str = "delete from kv where k = ?";
 
 const STATEMENT_DELETE_ALL_EXPIRED: &str =
   "delete from kv where expiration_ms >= 0 and expiration_ms <= ? returning k";
-const STATEMENT_EARLIEST_EXPIRATION: &str =
-  "select expiration_ms from kv where expiration_ms >= 0 order by expiration_ms limit 1";
+const STATEMENT_EARLIEST_EXPIRATION: &str = "select expiration_ms from kv where expiration_ms >= 0 order by expiration_ms limit 1";
 
 const STATEMENT_QUEUE_ADD_READY: &str = "insert into queue (ts, id, data, backoff_schedule, keys_if_undelivered) values(?, ?, ?, ?, ?)";
 const STATEMENT_QUEUE_GET_NEXT_READY: &str = "select ts, id, data, backoff_schedule, keys_if_undelivered from queue where ts <= ? order by ts limit 1";
@@ -66,8 +62,7 @@ const STATEMENT_QUEUE_UPDATE_RUNNING_DEADLINE: &str =
 const STATEMENT_QUEUE_REMOVE_RUNNING: &str =
   "delete from queue_running where id = ?";
 const STATEMENT_QUEUE_GET_RUNNING_BY_ID: &str = "select deadline, id, data, backoff_schedule, keys_if_undelivered from queue_running where id = ?";
-const STATEMENT_QUEUE_GET_RUNNING_PAST_DEADLINE: &str =
-  "select id from queue_running where deadline <= ? order by deadline limit 100";
+const STATEMENT_QUEUE_GET_RUNNING_PAST_DEADLINE: &str = "select id from queue_running where deadline <= ? order by deadline limit 100";
 
 const STATEMENT_CREATE_MIGRATION_TABLE: &str = "
 create table if not exists migration_state(
@@ -815,7 +810,11 @@ fn mutate_le64(
 
   let new_value = match old_value {
     Some(KvValue::U64(old_value)) => mutate(old_value, operand),
-    Some(_) => return Err(SqliteBackendError::TypeMismatch(format!("Failed to perform '{op_name}' mutation on a non-U64 value in the database"))),
+    Some(_) => {
+      return Err(SqliteBackendError::TypeMismatch(format!(
+        "Failed to perform '{op_name}' mutation on a non-U64 value in the database"
+      )));
+    }
     None => operand,
   };
 
