@@ -49,3 +49,12 @@ tempfile.workspace = true
 reqwest.workspace = true
 url.workspace = true
 v8_valueserializer.workspace = true
+
+[lints.rust]
+warnings = "allow"
+
+[lints.clippy]
+all = "allow"
+pedantic = "allow"
+nursery = "allow"
+cargo = "allow"

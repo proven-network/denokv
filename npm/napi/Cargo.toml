@@ -29,3 +29,12 @@ napi-build = "2"
 
 [profile.release]
 lto = true
+
+[lints.rust]
+warnings = "allow"
+
+[lints.clippy]
+all = "allow"
+pedantic = "allow"
+nursery = "allow"
+cargo = "allow"

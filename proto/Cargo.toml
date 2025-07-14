@@ -25,3 +25,12 @@ deno_error.workspace = true
 
 [build-dependencies]
 prost-build = { workspace = true, optional = true }
+
+[lints.rust]
+warnings = "allow"
+
+[lints.clippy]
+all = "allow"
+pedantic = "allow"
+nursery = "allow"
+cargo = "allow"

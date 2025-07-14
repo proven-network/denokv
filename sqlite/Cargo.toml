@@ -28,3 +28,12 @@ uuid.workspace = true
 v8_valueserializer.workspace = true
 tokio-stream.workspace = true
 deno_error.workspace = true
+
+[lints.rust]
+warnings = "allow"
+
+[lints.clippy]
+all = "allow"
+pedantic = "allow"
+nursery = "allow"
+cargo = "allow"
